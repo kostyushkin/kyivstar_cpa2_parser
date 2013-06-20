@@ -1,0 +1,11 @@
+{application, kyivstar_cpa2_parser, [
+    {description, ""},
+    {vsn, git},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]},
+    {mod, {kyivstar_cpa2_parser, []}},
+    {env, []}
+]}.
