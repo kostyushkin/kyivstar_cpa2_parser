@@ -77,10 +77,11 @@ decode(Report) ->
     {error_report, Report}.
 
 handle_incoming_msg(Data) ->
-    {<<"sn">>,_, [From]} = lists:keyfind(<<"sn">>, 1, Data),
-    {<<"sin">>,_, [To]} = lists:keyfind(<<"sin">>, 1, Data),
-    {<<"body">>,_, [Txt]} = lists:keyfind(<<"body">>, 1, Data),
-    {incoming_message, From, To, Txt, calendar:local_time()}.
+    {<<"rid">>,_, [MsgId]} = lists:keyfind(<<"rid">>, 1, Data),
+    {<<"sn">>,_, [SrcAddr]} = lists:keyfind(<<"sn">>, 1, Data),
+    {<<"sin">>,_, [DestAddr]} = lists:keyfind(<<"sin">>, 1, Data),
+    {<<"body">>,_, [Msg]} = lists:keyfind(<<"body">>, 1, Data),
+    {incoming_message, MsgId, SrcAddr, DestAddr, Msg, calendar:local_time()}.
 
 handle_delivered_report(AttrList, Data) ->
     {<<"status">>, StatusAttrList, [Status]} = lists:keyfind(<<"status">>, 1, Data),
