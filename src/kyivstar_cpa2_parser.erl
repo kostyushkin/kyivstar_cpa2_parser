@@ -103,19 +103,19 @@ handle_delivered_report(AttrList, Data) ->
 capture_date(<<_WeekDay:3/binary,", ",
         BDay:2/binary," ",BMonthName:3/binary," ",BYear:4/binary," ",
         BHour:2/binary,":",BMin:2/binary,":",BSec:2/binary," ",TZR/binary>>) ->
-    Year = binary_to_integer(BYear),
+    Year = list_to_integer(binary_to_list(BYear)),
     Month = month_name_to_number(BMonthName),
-    Day = binary_to_integer(BDay),
-    Hour = binary_to_integer(BHour),
-    Min = binary_to_integer(BMin),
-    Sec = binary_to_integer(BSec),
+    Day = list_to_integer(binary_to_list(BDay)),
+    Hour = list_to_integer(binary_to_list(BHour)),
+    Min = list_to_integer(binary_to_list(BMin)),
+    Sec = list_to_integer(binary_to_list(BSec)),
     time_to_local_time({{Year, Month, Day}, {Hour, Min, Sec}}, TZR).
  
 time_to_local_time(DateTime, <<"GMT">>) ->
     calendar:universal_time_to_local_time(DateTime);
 time_to_local_time(DateTime, <<Sign:8, HH:2/binary, $:, MM:2/binary>>) ->
-    H = binary_to_integer(HH),
-    M = binary_to_integer(MM),
+    H = list_to_integer(binary_to_list(HH)),
+    M = list_to_integer(binary_to_list(MM)),
     TimeZoneShiftSeconds = calendar:time_to_seconds({H, M, 0}),
     DateTimeSeconds = calendar:datetime_to_gregorian_seconds(DateTime),
     LocalDateTimeSeconds = case Sign of
@@ -208,13 +208,11 @@ tag_content(<<Blank,Bin/binary>>, Parent)
 tag_content(<<"</", Bin1/binary>>, Parent) ->
     Len = size(Parent),
     <<Parent:Len/binary, ">", Bin/binary>> = Bin1,
-    {[], Bin};
-
+    {[<<>>], Bin};
 tag_content(<<"<",_/binary>> = Bin, Parent) ->
     {Tag, Rest1} = tag(Bin),
     {Content, Rest2} = tag_content(Rest1, Parent),
     {[Tag|Content], Rest2};
-
 tag_content(Bin, Parent) ->
     [Text, Rest] = binary:split(Bin, <<"</",Parent/binary,">">>),
     {[Text],Rest}.
