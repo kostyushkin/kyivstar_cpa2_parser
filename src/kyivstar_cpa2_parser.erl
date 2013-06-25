@@ -69,19 +69,22 @@ decode({<<"message">>, AttList, Data}=Report) ->
         {<<"service">>,_,[<<"delivery-report">>]} ->
             handle_delivered_report(AttList, Data);
 	    {<<"service">>,_,[<<"content-request">>]} ->
-	        handle_incoming_msg(Data);
+	        handle_incoming_msg(AttList, Data);
 	    false ->
             {error_report, Report}
     end;
 decode(Report) ->
     {error_report, Report}.
 
-handle_incoming_msg(Data) ->
-    {<<"rid">>,_, [MsgId]} = lists:keyfind(<<"rid">>, 1, Data),
+handle_incoming_msg(AttList, Data) ->
+    {<<"rid">>, MsgId} = lists:keyfind(<<"rid">>, 1, AttList),
+    {<<"status">>, StatusAttrList, _} = lists:keyfind(<<"status">>, 1, Data),
+    {<<"date">>, Date} = lists:keyfind(<<"date">>, 1, StatusAttrList),
     {<<"sn">>,_, [SrcAddr]} = lists:keyfind(<<"sn">>, 1, Data),
     {<<"sin">>,_, [DestAddr]} = lists:keyfind(<<"sin">>, 1, Data),
     {<<"body">>,_, [Msg]} = lists:keyfind(<<"body">>, 1, Data),
-    {incoming_message, MsgId, SrcAddr, DestAddr, Msg, calendar:local_time()}.
+    DoneDate = capture_date(Date),
+    {incoming_message, MsgId, SrcAddr, DestAddr, Msg, DoneDate}.
 
 handle_delivered_report(AttrList, Data) ->
     {<<"status">>, StatusAttrList, [Status]} = lists:keyfind(<<"status">>, 1, Data),
