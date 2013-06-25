@@ -28,7 +28,7 @@ build_request(SrcAddr, DestAddr, Msg, Opts) when is_list(Opts),
 parse_response(Bin) when is_binary(Bin) ->
     Bin1 = skip_declaration(Bin),
     {Tag, Rest} = tag(Bin1),
-    <<>> = trim_first(Rest),
+    <<>> = trim_head(Rest),
     decode(Tag).
 
 %% internal
@@ -139,30 +139,30 @@ month_name_to_number(<<"Dec">>) -> 12.
 
 skip_declaration(<<"<?xml", Bin/binary>>) ->
     [_,Rest] = binary:split(Bin, <<"?>">>),
-    trim_first(Rest),
+    trim_head(Rest),
     skip_declaration(Rest);
 skip_declaration(<<"<!", Bin/binary>>) ->
 	[_,Rest] = binary:split(Bin, <<">">>),
-	trim_first(Rest);
+	trim_head(Rest);
 skip_declaration(<<"<",_/binary>> = Bin) -> Bin;
 skip_declaration(<<_,Bin/binary>>) -> skip_declaration(Bin).
 
-trim_first(<<" ",Bin/binary>>) -> trim_first(Bin);
-trim_first(<<"\n",Bin/binary>>) -> trim_first(Bin);
-trim_first(<<"\t",Bin/binary>>) -> trim_first(Bin);
-trim_first(<<"\r",Bin/binary>>) -> trim_first(Bin);
-trim_first(Bin) -> Bin.
+trim_head(<<" ",Bin/binary>>) -> trim_head(Bin);
+trim_head(<<"\n",Bin/binary>>) -> trim_head(Bin);
+trim_head(<<"\t",Bin/binary>>) -> trim_head(Bin);
+trim_head(<<"\r",Bin/binary>>) -> trim_head(Bin);
+trim_head(Bin) -> Bin.
 
-trim_last(<<>>) ->
+trim_tail(<<>>) ->
     <<>>;
-trim_last(Bin) when is_binary(Bin) ->
-    trim_last(Bin, binary_part(Bin,{0, byte_size(Bin)-1})).
+trim_tail(Bin) when is_binary(Bin) ->
+    trim_tail(Bin, binary_part(Bin,{0, byte_size(Bin)-1})).
 
-trim_last(Bin, Rest) when Bin =:= <<Rest, " ">> -> trim_last(Rest);
-trim_last(Bin, Rest) when Bin =:= <<Rest, "\n">> -> trim_last(Rest);
-trim_last(Bin, Rest) when Bin =:= <<Rest, "\t">> -> trim_last(Rest);
-trim_last(Bin, Rest) when Bin =:= <<Rest, "\r">> -> trim_last(Rest);
-trim_last(Bin, _) -> Bin.
+trim_tail(Bin, Rest) when Bin =:= <<Rest/binary, " ">> -> trim_tail(Rest);
+trim_tail(Bin, Rest) when Bin =:= <<Rest/binary, "\n">> -> trim_tail(Rest);
+trim_tail(Bin, Rest) when Bin =:= <<Rest/binary, "\t">> -> trim_tail(Rest);
+trim_tail(Bin, Rest) when Bin =:= <<Rest/binary, "\r">> -> trim_tail(Rest);
+trim_tail(Bin, _) -> Bin.
 
 tag(<<"<", Bin/binary>>) ->
     [TagHeader1,Rest1] = binary:split(Bin, <<">">>),
@@ -191,7 +191,7 @@ tag_attrs(Attrs) ->
     case binary:split(Attrs,<<"=">>) of
         [Key1,Value1] ->
             [Value2,Rest] = attr_value(Value1),
-            [{trim_last(Key1),Value2}|tag_attrs(Rest)]
+            [{trim_tail(Key1),Value2}|tag_attrs(Rest)]
   end.
 
 attr_value(<<Blank,Value/binary>>)
